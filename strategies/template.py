@@ -25,14 +25,8 @@ class StrategyClass:
         ''' Define strategy to determine entry signals '''
         
         order_type  = 'market'
-        signal_dict = {}
-        
         # Define strategy logic - 1 for long, -1 for short
         signal = 0
-        
-        # Construct signal dictionary
-        signal_dict["order_type"]   = order_type
-        signal_dict["direction"]    = signal
-        
-        return signal_dict
+
+        return {"order_type": order_type, "direction": signal}
     
