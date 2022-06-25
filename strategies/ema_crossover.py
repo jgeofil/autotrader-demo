@@ -31,32 +31,30 @@ class EMAcrossOver:
         
     def generate_signal(self, i):
         ''' Define strategy to determine entry signals '''
-        signal_dict     = {}
         RR = self.params['RR']
-        
+
         if self.crossovers[i] == 1:
             # Fast EMA has crossed above slow EMA, go long
             signal  = 1
             stop    = self.data.Close[i] - 2*self.atr[i]
             take    = self.data.Close[i] + RR*(self.data.Close[i] - stop)
-            
+
         elif self.crossovers[i] == -1:
             # Fast EMA has crossed below slow EMA, go short
             signal  = -1
             stop    = self.data.Close[i] + 2*self.atr[i]
             take    = self.data.Close[i] + RR*(self.data.Close[i] - stop)
-        
+
         else:
             # No signal
             signal  = 0
             stop    = None
             take    = None
-        
-        # Construct signal dictionary
-        signal_dict["order_type"] = 'market'
-        signal_dict["direction"] = signal
-        signal_dict["stop_loss"] = stop
-        signal_dict["stop_type"] = 'limit'
-        signal_dict["take_profit"] = take
-        
-        return signal_dict
+
+        return {
+            "order_type": 'market',
+            "direction": signal,
+            "stop_loss": stop,
+            "stop_type": 'limit',
+            "take_profit": take,
+        }

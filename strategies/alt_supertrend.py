@@ -60,23 +60,17 @@ class SuperTrendScan:
         ''' Generate long and short signals based on SuperTrend Indicator '''
         
         order_type  = 'market'
-        signal_dict = {}
-
         if self.rolling_signal[i] == 1 and \
             self.candles_since_signal[i] < self.params['candle_tol']:
             # Start of uptrend
             signal = 1
-        
+
         elif self.rolling_signal[i] == -1 and \
             self.candles_since_signal[i] < self.params['candle_tol']:
             # Start of downtrend
             signal = -1
-        
+
         else:
             signal = 0
-        
-        # Construct signal dictionary
-        signal_dict["order_type"]   = order_type
-        signal_dict["direction"]    = signal
-        
-        return signal_dict
+
+        return {"order_type": order_type, "direction": signal}

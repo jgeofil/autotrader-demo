@@ -28,25 +28,19 @@ class SuperTrendScan:
         ''' Generate long and short signals based on SuperTrend Indicator '''
         
         order_type  = 'market'
-        signal_dict = {}
-
         if self.data.Close[i] > self.ema200[i] and \
            self.st_df.trend[i] == 1 and \
            self.st_df.trend[i-1] == -1:
             # Start of uptrend
             signal = 1
-        
+
         elif self.data.Close[i] < self.ema200[i] and \
            self.st_df.trend[i] == -1 and \
            self.st_df.trend[i-1] == 1:
             # Start of downtrend
             signal = -1
-        
+
         else:
             signal = 0
-        
-        # Construct signal dictionary
-        signal_dict["order_type"]   = order_type
-        signal_dict["direction"]    = signal
-        
-        return signal_dict
+
+        return {"order_type": order_type, "direction": signal}

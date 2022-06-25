@@ -32,9 +32,8 @@ class SMAMomentum:
         
     def generate_signal(self, i):
         ''' Define strategy to determine entry signals '''
-        signal_dict = {}
         RR = self.params['RR']
-        
+
         if self.data.Close[i] > self.sma[i] and \
             self.data.Open[i] < self.sma[i] and \
             (self.data.Close[i] - self.data.Close.shift(self.params['candle_lookback'])[i]) > 0:
@@ -42,7 +41,7 @@ class SMAMomentum:
             signal  = 1
             stop    = self.data.Low[i] - self.params['exit_buffer']
             take    = self.data.Close[i] + RR*(self.data.Close[i] - stop)
-            
+
         elif self.data.Close[i] < self.sma[i] and \
             self.data.Open[i] > self.sma[i] and \
             (self.data.Close[i] - self.data.Close.shift(self.params['candle_lookback'])[i]) < 0:
@@ -50,17 +49,16 @@ class SMAMomentum:
             signal  = -1
             stop    = self.data.High[i] + self.params['exit_buffer']
             take    = self.data.Close[i] + RR*(self.data.Close[i] - stop)
-        
+
         else:
             # No signal
             signal  = 0
             stop    = None
             take    = None
-        
-        # Construct signal dictionary
-        signal_dict["order_type"] = 'market'
-        signal_dict["direction"] = signal
-        signal_dict["stop_loss"] = stop
-        signal_dict["take_profit"] = take
-        
-        return signal_dict
+
+        return {
+            "order_type": 'market',
+            "direction": signal,
+            "stop_loss": stop,
+            "take_profit": take,
+        }

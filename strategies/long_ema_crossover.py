@@ -34,8 +34,6 @@ class LongEMAcrossOver:
         ''' Define strategy to determine entry signals '''
         order_type      = 'market'
         related_orders  = None
-        signal_dict     = {}
-        
         # Put entry strategy here
         signal      = 0
         if len(current_position) == 0:
@@ -43,17 +41,14 @@ class LongEMAcrossOver:
             if self.crossovers[i] == 1:
                 # Fast EMA has crossed above slow EMA, enter long
                 signal = 1
-        else:
-            # Already in a position, only look for long exits
-            if self.crossovers[i] == -1:
-                signal = -1
-                related_orders = current_position[self.instrument].as_dict()['trade_IDs'][0]
-                order_type = 'close'
-        
-        # Construct signal dictionary
-        signal_dict["order_type"]   = order_type
-        signal_dict["direction"]    = signal
-        signal_dict["related_orders"] = related_orders
-        
-        return signal_dict
+        elif self.crossovers[i] == -1:
+            signal = -1
+            related_orders = current_position[self.instrument].as_dict()['trade_IDs'][0]
+            order_type = 'close'
+
+        return {
+            "order_type": order_type,
+            "direction": signal,
+            "related_orders": related_orders,
+        }
 

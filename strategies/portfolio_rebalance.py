@@ -42,18 +42,18 @@ class Rebalance:
         
         signal_dict = {'order_type': 'market',
                        'direction': 0}
-        
+
         # Get current positions held by account
         rebalance_instruments = list(self.params['rebalance_percentages'].keys())
         current_holdings = self.broker.get_positions(rebalance_instruments)
 
         if all(inst in current_holdings.keys() for inst in rebalance_instruments):
             # A position is held in all of the rebalance instruments
-            
+
             # Check if it is time to rebalance
             current_time = self.data.index[i]
             days_since_last_rebalance = (current_time - self.last_rebalance).days
-            
+
             # # START PRINTOUT TO MONITOR ASSET ALLOCATION
             # asset_allocation = {}
             # total_value = 0
@@ -61,14 +61,14 @@ class Rebalance:
             #     position_value = current_holdings[instrument]['total_margin']
             #     asset_allocation[instrument] = position_value
             #     total_value += position_value
-            
+
             # pc_allocation = {}
             # for instrument in asset_allocation:
             #     pc_allocation[instrument] = round(100*asset_allocation[instrument]/total_value,2)
-            
+
             # print(f"Asset allocation percentages: {pc_allocation}")
             # # END PRINTOUT TO MONITOR ASSET ALLOCATION
-            
+
             if days_since_last_rebalance >= self.params['rebalance_every_N_days']:
                 # Calculate current asset allocation
                 asset_allocation = {}
@@ -77,20 +77,20 @@ class Rebalance:
                     position_value = current_holdings[instrument].total_margin
                     asset_allocation[instrument] = position_value
                     total_value += position_value
-                
+
                 allocation_error = abs(100*asset_allocation[self.instrument]/total_value - \
                     self.params['rebalance_percentages'][self.instrument])
-                
+
                 if allocation_error > self.params['rebalance_pc_tolerance']:
                     # Rebalance required
                     # print(" REBALANCING")
-                    
+
                     # Calculate required size to meet balance percentage
                     required_size = self.calculate_position_size(self.data.Close[i])
-                    
+
                     # Calculate difference between required size and current position size
                     size_difference = required_size - current_holdings[self.instrument].long_units
-                    
+
                     # Place order using calculated size difference to rebalance
                     signal_dict['direction'] = np.sign(size_difference)
                     signal_dict['size'] = size_difference
@@ -99,20 +99,18 @@ class Rebalance:
                     else:
                         # Add to position, check margin requirments on size
                         signal_dict['size'] = self.check_margin_requirements(self.data.Close[i], size_difference)
-                    
+
                 # Reset last_rebalance time
                 self.last_rebalance = current_time
-            
-        else:
-            # Haven't acquired all rebalance instruments yet
-            if self.instrument not in current_holdings:
-                signal_dict['direction'] = 1 # buy
-                nominal_size = self.calculate_position_size(self.data.Close[i])
-                signal_dict['size'] = self.check_margin_requirements(self.data.Close[i], nominal_size)
-                
-                # Assign time to last_rebalance attribute
-                self.last_rebalance = self.data.index[i]
-        
+
+        elif self.instrument not in current_holdings:
+            signal_dict['direction'] = 1 # buy
+            nominal_size = self.calculate_position_size(self.data.Close[i])
+            signal_dict['size'] = self.check_margin_requirements(self.data.Close[i], nominal_size)
+
+            # Assign time to last_rebalance attribute
+            self.last_rebalance = self.data.index[i]
+
         return signal_dict
     
     def check_margin_requirements(self, price, size):
@@ -138,7 +136,11 @@ class Rebalance:
         account_balance = self.broker.get_balance()
         instrument_allocation_pc = self.params['rebalance_percentages'][self.instrument] / 100
         instrument_allocation_value = instrument_allocation_pc * account_balance * self.params['account_leverage']
-        position_size = np.floor((instrument_allocation_value / price)* \
-                                 10**self.params['partial_trade_rounding'])/10**self.params['partial_trade_rounding']
-        return position_size
+        return (
+            np.floor(
+                (instrument_allocation_value / price)
+                * 10 ** self.params['partial_trade_rounding']
+            )
+            / 10 ** self.params['partial_trade_rounding']
+        )
     
